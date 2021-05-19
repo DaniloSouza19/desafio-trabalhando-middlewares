@@ -17,6 +17,8 @@ function checksExistsUserAccount(request, response, next) {
   if(!userExists) {
     return response.status(404).json({ error: 'User not found' });
   }
+  
+  request.user = userExists;
 
   return next();
 }
@@ -32,11 +34,45 @@ function checksCreateTodosUserAvailability(request, response, next) {
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const userExists = users.find(user => user.username === username);
+
+  if (!userExists) {
+    return response.status(404).json({ error: 'User not found' });
+  }
+
+  const uuidIsValid = validate(id);
+
+  if(uuidIsValid) {
+    const todoExists = userExists.todos.find(todo => todo.id === id);
+
+    if(!todoExists) {
+      return response.status(404).json({ error: 'TODO not found'})
+    }
+
+    request.todo = todoExists;
+
+  } else return response.status(400).json({ error: 'invalid todo id'})
+  
+  request.user = userExists;
+
+  return next();
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+  const { id } = request.params;
+
+  const userExists = users.find(user => user.id === id);
+
+  if (!userExists) {
+    return response.status(404).json({ error: 'User not found'});
+  }
+
+  request.user = userExists;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
